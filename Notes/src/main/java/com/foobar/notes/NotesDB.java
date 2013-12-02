@@ -6,6 +6,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.database.Cursor;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 
 /**
  * Created by tom on 12/1/13.
@@ -27,12 +30,12 @@ public class NotesDB extends SQLiteOpenHelper
             COLUMN_LAST_UPDATE
     };
 
-    private static final String DB_CREATE = "create table " + TABLE_NAME + "("
-        + BaseColumns._ID + "INTEGER PRIMARY KEY AUTOINCREMENT,"
-        + COLUMN_TITLE + "STRING,"
-        + COLUMN_CONTENT + "STRING,"
-        + COLUMN_LAST_UPDATE + "INTEGER"
-        + ");";
+    private static final String DB_CREATE = "create table " + TABLE_NAME + "( "
+        + BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + COLUMN_TITLE + " STRING,"
+        + COLUMN_CONTENT + " STRING,"
+        + COLUMN_LAST_UPDATE + " INTEGER"
+        + " );";
 
     private static final String SORT_ORDER = COLUMN_LAST_UPDATE + " DESC";
 
@@ -41,8 +44,16 @@ public class NotesDB extends SQLiteOpenHelper
         public int id = -1;
         public String title = "";
         public String content = "";
-        public int last_update = 0;
+        public long last_update = 0;
+
+        public String time()
+        {
+            DateFormat df = DateFormat.getDateTimeInstance();
+            return df.format(new Date(last_update));
+        }
     }
+
+    private SQLiteDatabase db;
 
     public NotesDB(Context context)
     {
@@ -60,12 +71,26 @@ public class NotesDB extends SQLiteOpenHelper
 
     public void delete(int id)
     {
-        SQLiteDatabase db = getWritableDatabase();
-        if (db != null) db.delete(TABLE_NAME, "where " + BaseColumns._ID + "= " + id, null);
+        if (db != null)
+        {
+            db.delete(TABLE_NAME, "where " + BaseColumns._ID + "= " + id, null);
+        }
+    }
+
+    public void open()
+    {
+        db = getWritableDatabase();
+    }
+
+    public void close()
+    {
+        db.close();
     }
 
     public long save(Note toSave)
     {
+        toSave.last_update = System.currentTimeMillis();
+
         ContentValues values = new ContentValues();
 
         values.put(COLUMN_TITLE, toSave.title);
@@ -74,7 +99,6 @@ public class NotesDB extends SQLiteOpenHelper
 
         long result = -1;
 
-        SQLiteDatabase db = getWritableDatabase();
         if (db != null)
         {
             if (toSave.id < 0)
@@ -94,14 +118,12 @@ public class NotesDB extends SQLiteOpenHelper
                     result = toSave.id;
                 }
             }
-            db.close();
         }
         return result;
     }
 
     public Note load(int id)
     {
-        SQLiteDatabase db = getReadableDatabase();
         if (db == null) return null;
 
         Cursor cursor = db.query(TABLE_NAME, COLUMNS, BaseColumns._ID + " = ?", new String[] { String.valueOf(id)}, null, null, null, "1");
@@ -113,7 +135,7 @@ public class NotesDB extends SQLiteOpenHelper
         note.id = cursor.getInt(cursor.getColumnIndex(BaseColumns._ID));
         note.content = cursor.getString(cursor.getColumnIndex(COLUMN_CONTENT));
         note.title = cursor.getString(cursor.getColumnIndex(COLUMN_TITLE));
-        note.last_update = cursor.getInt(cursor.getColumnIndex(COLUMN_LAST_UPDATE));
+        note.last_update = cursor.getLong(cursor.getColumnIndex(COLUMN_LAST_UPDATE));
 
         cursor.close();
         return note;
@@ -121,10 +143,8 @@ public class NotesDB extends SQLiteOpenHelper
 
     public Cursor loadAll()
     {
-        SQLiteDatabase db = getReadableDatabase();
         if (db == null) return null;
 
         return db.query(TABLE_NAME, COLUMNS, null, null, null, null, SORT_ORDER);
-
     }
 }

@@ -1,5 +1,7 @@
 package com.foobar.notes;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.app.ActionBarActivity;;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -19,8 +21,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.foobar.notes.NotesDB;
+
+import java.util.Date;
+
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -57,6 +65,8 @@ public class NavigationDrawerFragment extends Fragment {
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+
+    private NotesDB db;
 
     public NavigationDrawerFragment() {
     }
@@ -244,9 +254,13 @@ public class NavigationDrawerFragment extends Fragment {
         }
 
         switch (item.getItemId()) {
-            case R.id.action_example:
-                Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
-                return true;
+            case R.id.new_note:
+                openDB();
+                NotesDB.Note note = new NotesDB.Note();
+                note.title = "foo";
+                note.content = "bar content";
+                Toast.makeText(getActivity(), "Note created", Toast.LENGTH_SHORT).show();
+                closeDB();
         }
 
         return super.onOptionsItemSelected(item);
@@ -275,5 +289,25 @@ public class NavigationDrawerFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+    }
+
+    private void openDB()
+    {
+        db = new NotesDB(getActivity());
+        db.open();
+    }
+
+    private void closeDB()
+    {
+        if (db != null) db.close();
+    }
+
+    private void updateListView()
+    {
+        openDB();
+        Cursor cursor = db.loadAll();
+
+        if (cursor == null) return;
+
     }
 }
