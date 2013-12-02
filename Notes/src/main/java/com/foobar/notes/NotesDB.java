@@ -102,14 +102,29 @@ public class NotesDB extends SQLiteOpenHelper
     public Note load(int id)
     {
         SQLiteDatabase db = getReadableDatabase();
-
         if (db == null) return null;
 
-        Cursor cursor = db.query(TABLE_NAME, COLUMNS, BaseColumns._ID + " = ?", new String[] { )}, null, null, SORT_ORDER);
+        Cursor cursor = db.query(TABLE_NAME, COLUMNS, BaseColumns._ID + " = ?", new String[] { String.valueOf(id)}, null, null, null, "1");
+
+        if (!cursor.moveToFirst()) return null;
+
+        Note note = new Note();
+
+        note.id = cursor.getInt(cursor.getColumnIndex(BaseColumns._ID));
+        note.content = cursor.getString(cursor.getColumnIndex(COLUMN_CONTENT));
+        note.title = cursor.getString(cursor.getColumnIndex(COLUMN_TITLE));
+        note.last_update = cursor.getInt(cursor.getColumnIndex(COLUMN_LAST_UPDATE));
+
+        cursor.close();
+        return note;
     }
 
     public Cursor loadAll()
     {
-        return null;
+        SQLiteDatabase db = getReadableDatabase();
+        if (db == null) return null;
+
+        return db.query(TABLE_NAME, COLUMNS, null, null, null, null, SORT_ORDER);
+
     }
 }
