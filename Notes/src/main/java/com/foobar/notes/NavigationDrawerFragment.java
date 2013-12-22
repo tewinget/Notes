@@ -2,7 +2,7 @@ package com.foobar.notes;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v7.app.ActionBarActivity;;
+import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
